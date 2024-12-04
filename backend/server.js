@@ -33,14 +33,31 @@ app.post('/login', async (req, res) => {
 // Register route
 app.post('/register', async (req, res) => {
     const { email, password } = req.body;
+    console.log('Incoming request:', req.body); // Log incoming data
+
+    if (!email || !password) {
+        console.log('Validation error: Missing email or password'); // Debugging line
+        return res.status(400).json({ message: 'Email and password are required.' });
+    }
+
     try {
+        const existingUser = await User.findOne({ email });
+        if (existingUser) {
+            console.log('Conflict error: Email already exists'); // Debugging line
+            return res.status(409).json({ message: 'Email already exists.' });
+        }
+
         const newUser = new User({ email, password });
+        console.log('Attempting to save user:', newUser); // Debugging line
         await newUser.save();
+        console.log('User saved successfully:', newUser); // Debugging line
         res.status(201).json({ message: 'User registered successfully' });
     } catch (error) {
-        res.status(500).json({ message: 'Server error', error });
+        console.error('Server error:', error); // Log the exact error
+        res.status(500).json({ message: 'Server error', error: error.message });
     }
 });
+
 
 
 
